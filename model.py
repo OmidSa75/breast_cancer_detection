@@ -62,7 +62,7 @@ class GlobalBranch(nn.Module):
 
 
 class AttentionBlock(nn.Module):
-    def __init__(self):
+    def __init__(self, sample):
         super(AttentionBlock, self).__init__()
         self.name = 'AttentionBlock'
         # Global Feature and Global Score
@@ -75,8 +75,8 @@ class AttentionBlock(nn.Module):
 
         self.branch = nn.Sequential(
             GlobalBranch(),
-            GlobalBranch(),
-            GlobalBranch(),
+            # GlobalBranch(),
+            # GlobalBranch(),
         )
 
         self.Global_features = ConvActBatNorm(8, 4, kernel_size=1, padding=1)
@@ -86,15 +86,42 @@ class AttentionBlock(nn.Module):
         self.residual = nn.Sequential(
             Residual(3, 4, kernel_size=3),
             Residual(4, 4, kernel_size=5),
-            Residual(4, 4, kernel_size=3),
-            Residual(4, 4, kernel_size=5),
+            # Residual(4, 4, kernel_size=3),
+            # Residual(4, 4, kernel_size=5),
         )
 
         self.local_score = nn.Sequential(
-            ConvActBatNorm(4, 16, kernel_size=3, padding=1),
-            ConvActBatNorm(16, 4, kernel_size=5, padding=2),
+            # ConvActBatNorm(4, 16, kernel_size=3, padding=1),
+            # ConvActBatNorm(16, 4, kernel_size=5, padding=2),
             ConvActBatNorm(4, 2, kernel_size=7, padding=3)
         )
+
+        in_feature = self.calc_in_feature(sample)
+        self.classifier = nn.Sequential(
+            nn.Linear(in_feature, 64),
+            nn.ReLU(),
+            nn.Linear(64, 32),
+            nn.ReLU(),
+            nn.Linear(32, 2),
+        )
+
+    def calc_in_feature(self, x: torch.Tensor):
+        out1 = self.input_conv(x)
+
+        branch = self.branch(out1)
+        global_score = self.Global_Score(self.Global_features(branch))
+
+        # Local
+        residual = self.residual(x)
+        local_score = self.local_score(residual)
+        local_score = F.interpolate(local_score, size=(global_score.data[0].shape[1], global_score.data[0].shape[2]),
+                                    mode='bilinear', align_corners=False)
+
+        score = local_score + global_score
+
+        in_feature = torch.flatten(score, 1).shape[1]
+        print("Number of In Features: ", in_feature)
+        return in_feature
 
     def forward(self, x):
         # Global
@@ -106,10 +133,11 @@ class AttentionBlock(nn.Module):
         # Local
         residual = self.residual(x)
         local_score = self.local_score(residual)
-        Local_score = F.interpolate(local_score, size=(global_score.data[0].shape[1], global_score.data[0].shape[2]),
+        local_score = F.interpolate(local_score, size=(global_score.data[0].shape[1], global_score.data[0].shape[2]),
                                     mode='bilinear', align_corners=False)
 
-        Score = Local_score + global_score
-        out = torch.mean(Score, dim=(2, 3))
+        score = local_score + global_score
+        score = torch.flatten(score, 1)
+        out = self.classifier(score)
 
         return out
