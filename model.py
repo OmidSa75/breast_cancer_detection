@@ -98,7 +98,9 @@ class AttentionBlock(nn.Module):
 
         in_feature = self.calc_in_feature(sample)
         self.classifier = nn.Sequential(
+            nn.Dropout(0.75),
             nn.Linear(in_feature, 64),
+            nn.Dropout(0.5),
             nn.ReLU(),
             nn.Linear(64, 32),
             nn.ReLU(),
