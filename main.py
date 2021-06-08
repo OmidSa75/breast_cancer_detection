@@ -1,6 +1,6 @@
 from torchvision.datasets import ImageFolder
 import os
-from autoencoder import ConvAutoEncoder
+from autoencoder import VAE
 from utils import Utils, TransForms
 from traintest_autoencoder import TrainTest
 from config import config
@@ -10,7 +10,7 @@ if __name__ == '__main__':
     utils = Utils()
     train_dataset = ImageFolder(os.path.join('breast_cancer', 'train'), transform=tfms.train_tfms)
     test_dataset = ImageFolder(os.path.join('breast_cancer', 'test'), transform=tfms.test_tfms)
-    model = ConvAutoEncoder()
+    model = VAE()
     num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print("Number of train images: {}\nNumber of test images: {}\nNumber of model trainable parameters: {}".format(
         len(train_dataset.imgs), len(test_dataset.imgs), num_params

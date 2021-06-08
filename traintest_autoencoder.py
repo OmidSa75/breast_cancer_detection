@@ -1,7 +1,9 @@
 import torch
 from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
+from torchvision.utils import save_image
 import os
 from tqdm import tqdm
+from loss import VAEClsLoss
 
 
 class TrainTest:
@@ -36,7 +38,7 @@ class TrainTest:
                                           pin_memory=True)
 
         '''loss function'''
-        self.criterion = torch.nn.BCELoss().to(self.device)
+        self.criterion = VAEClsLoss().to(self.device)
 
         '''scheduler'''
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', factor=0.5, patience=3)
@@ -53,8 +55,8 @@ class TrainTest:
                 data = data.to(self.device)
                 self.optimizer.zero_grad()
 
-                outputs = self.model(data)
-                loss = self.criterion(outputs, data)
+                recon, mu, z, std, logscale = self.model(data)
+                loss = self.criterion(recon, data, mu, z, std, logscale)
                 loss.backward()
                 self.optimizer.step()
 
@@ -62,7 +64,11 @@ class TrainTest:
 
             epoch_loss = train_loss / len(self.train_dataloader)
 
-            print("\n\033[0;32mEpoch: {} [Train Loss: {:.4f}\033[0;0m".format(epoch, epoch_loss))
+            print("\n\033[0;32mEpoch: {} [Train Loss: {:.4f}]\033[0;0m".format(epoch, epoch_loss))
+
+            if epoch % self.args.save_gen_images == 0:
+                save_imgs = self.utils.to_img(recon.cpu().data, self.args.img_size)
+                save_image(save_imgs, os.path.join(self.args.save_gen_images_dir, f'epoch_{epoch}.jpg'))
 
             if epoch % self.args.save_iteration == 0:
                 torch.save(self.model.state_dict(),
@@ -80,8 +86,8 @@ class TrainTest:
 
         for data, _ in tqdm(self.test_dataloader, desc="*Testing*"):
             data = data.to(self.device)
-            outputs = self.model(data)
-            loss = self.criterion(outputs, data)
+            recon, mu, z, std, logscale = self.model(data)
+            loss = self.criterion(recon, data, mu, z, std, logscale)
 
             test_loss += loss
 

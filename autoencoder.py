@@ -49,10 +49,10 @@ class MSCNN(nn.Module):
         return self.pool(self.conv(self.pool(cat)))
 
 
-class VAEClsConv(nn.Module):
+class VAE(nn.Module):
     def __init__(self):
         super().__init__()
-        self.name = "VAECls"
+        self.name = "VAE"
         self.encoder = nn.Sequential(
             ConvActBatNorm(3, 64, (3, 3), stride=(1, 1), padding=(1, 1)),
             nn.MaxPool2d(2, stride=2),
