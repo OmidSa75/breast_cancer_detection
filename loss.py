@@ -27,13 +27,16 @@ def kl_divergence(z, mu, std):
     return kl
 
 
-def vae_loss(recon_x, x, z, mu, std, logscale):
-    recon_loss = gaussian_likelihood(recon_x, logscale, x)
-    kl = kl_divergence(z, mu, std)
+class VAEClsLoss(nn.Module):
+    def __init__(self):
+        super(VAEClsLoss, self).__init__()
 
-    # elbo
-    elbo = kl - recon_loss
-    elbo = elbo.mean()
+    def forward(self, recon_x, x, z, mu, std, logscale):
+        recon_loss = gaussian_likelihood(recon_x, logscale, x)
+        kl = kl_divergence(z, mu, std)
 
-    return elbo
+        # elbo
+        elbo = kl - recon_loss
+        elbo = elbo.mean()
 
+        return elbo
