@@ -9,6 +9,7 @@ class TransForms:
         self.img_size = img_size
         self.train_tfms = self.return_train_transforms()
         self.test_tfms = self.return_test_transforms()
+        self.simple_tfms = self.simple_transform()
 
     def pad_image(self, image):
         padded_im = functional.pad(image, self.get_padding(image))  # torchvision.transforms.functional.pad
@@ -36,7 +37,7 @@ class TransForms:
 
     def return_train_transforms(self):
         tfms = transforms.Compose([
-            # transforms.Lambda(self.pad_image),
+            transforms.Lambda(self.pad_image),
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(),
             transforms.RandomAdjustSharpness(2),
@@ -46,21 +47,28 @@ class TransForms:
             transforms.Resize([self.img_size[0], self.img_size[1]], transforms.transforms.InterpolationMode.BICUBIC),
             transforms.ToTensor(),
             transforms.RandomErasing(0.25),
-            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         ])
         return tfms
 
     def return_test_transforms(self):
         tfms = transforms.Compose([
-            # transforms.Lambda(self.pad_image),
+            transforms.Lambda(self.pad_image),
             transforms.Resize([self.img_size[0], self.img_size[1]], transforms.transforms.InterpolationMode.BICUBIC),
             transforms.ToTensor(),
-            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         ])
         return tfms
 
-class Utils:
+    def simple_transform(self):
+        tfms = transforms.Compose([
+            transforms.Resize([self.img_size[0], self.img_size[1]], transforms.transforms.InterpolationMode.BICUBIC),
+            transforms.ToTensor(),
+        ])
+        return tfms
 
+
+class Utils:
     @staticmethod
     def calc_acc(preds: torch.Tensor, labels: torch.Tensor):
         _, pred_max = torch.max(preds, 1)
@@ -70,13 +78,18 @@ class Utils:
     @staticmethod
     def make_weights_for_balanced_classes(images, nclasses):
         count = [0] * nclasses
-        for item in images:
+        for item in images:  # count each class population
             count[item[1]] += 1
         weight_per_class = [0.] * nclasses
         N = float(sum(count))
         for i in range(nclasses):
-            weight_per_class[i] = N/float(count[i])
+            weight_per_class[i] = N / float(count[i])
         weight = [0] * len(images)
         for idx, val in enumerate(images):
             weight[idx] = weight_per_class[val[1]]
         return weight
+
+    @staticmethod
+    def to_img(x: torch.Tensor, size):
+        x = x.clamp(0, 1)
+        return x
