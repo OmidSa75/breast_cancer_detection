@@ -3,3 +3,4 @@ __pycache__
 breast_cancer/
 checkpoints/
 *.zip
+generated_images/

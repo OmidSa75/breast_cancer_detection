@@ -1,6 +1,16 @@
 import torch
 from torch import nn
 
+
+class Reshape(nn.Module):
+    def __init__(self, *args):
+        super(Reshape, self).__init__()
+        self.shape = args
+
+    def forward(self, x):
+        return x.view(self.shape)
+
+
 class ConvActBatNorm(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride=(1, 1), padding=(0, 0)):
         super(ConvActBatNorm, self).__init__()
@@ -54,43 +64,57 @@ class VAE(nn.Module):
         super().__init__()
         self.name = "VAE"
         self.encoder = nn.Sequential(
-            ConvActBatNorm(3, 64, (3, 3), stride=(1, 1), padding=(1, 1)),
+            ConvActBatNorm(1, 32, (3, 3), stride=(1, 1), padding=(1, 1)),
             nn.MaxPool2d(2, stride=2),
-            ConvActBatNorm(64, 32, (3, 3), stride=(1, 1), padding=(1, 1)),
+            ConvActBatNorm(32, 64, (3, 3), stride=(1, 1), padding=(1, 1)),
             nn.MaxPool2d(2, stride=2),
+            nn.Flatten(),
+            nn.Linear(8*8*64, 32),
+            nn.LeakyReLU(),
+            nn.BatchNorm1d(32),
         )
 
-        self.conv1 = nn.Sequential(
-            nn.Conv2d(32, 8, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
-            nn.BatchNorm2d(8),
-            nn.Sigmoid()
+        self.z_mean = nn.Sequential(
+            nn.Linear(32, 16),
+            nn.ReLU(),
+            nn.BatchNorm1d(16)
         )
-        self.conv2 = nn.Sequential(
-            nn.Conv2d(32, 8, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
-            nn.BatchNorm2d(8),
-            nn.Sigmoid()
+        self.z_log_var = nn.Sequential(
+            nn.Linear(32, 16),
+            nn.ReLU(),
+            nn.BatchNorm1d(16)
         )
 
         self.decoder = nn.Sequential(
-            ConvTActBatNorm(8, 32, (3, 3), stride=(1, 1), padding=(1, 1)),
+            nn.Linear(16, 8*8*64),
+            nn.ReLU(),
+            nn.BatchNorm1d(8*8*64),
+            Reshape(-1, 64, 8, 8),
             nn.Upsample(scale_factor=2),
-            ConvTActBatNorm(32, 64, (3, 3), stride=(1, 1), padding=(1, 1)),
+            ConvTActBatNorm(64, 32, (3, 3), stride=(1, 1), padding=(1, 1)),
             nn.Upsample(scale_factor=2),
-            ConvTActBatNorm(64, 3, (3, 3), stride=(1, 1), padding=(1, 1)),
-            nn.Sigmoid()
+            ConvTActBatNorm(32, 1, (3, 3), stride=(1, 1), padding=(1, 1)),
+            nn.ReLU()
         )
 
         self.logscale = nn.Parameter(torch.Tensor([0.0]))
 
     def encode(self, x):
         x = self.encoder(x)
-        return self.conv1(x), self.conv2(x)
+        return self.z_mean(x), self.z_log_var(x)
 
     def reparametrize(self, mu, logvar: torch.Tensor):
         std = torch.exp(logvar / 2)
-        q = torch.distributions.Normal(mu, std)
-        z = q.rsample()
-        return z, std
+        try:
+            q = torch.distributions.Normal(mu, std)
+            z = q.rsample()
+            return z, std
+        except Exception as e:
+            print(e)
+            print(mu, std)
+            assert 'error'
+
+
 
     def decode(self, x):
         x = self.decoder(x)
