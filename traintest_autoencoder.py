@@ -66,9 +66,9 @@ class TrainTest:
 
             print("\n\033[0;32mEpoch: {} [Train Loss: {:.4f}]\033[0;0m".format(epoch, epoch_loss))
 
-            if epoch % self.args.save_gen_images == 0:
-                save_imgs = self.utils.to_img(recon.cpu().data, self.args.img_size)
-                save_image(save_imgs, os.path.join(self.args.save_gen_images_dir, f'epoch_{epoch}.jpg'))
+            # if epoch % self.args.save_gen_images == 0:
+            #     save_imgs = self.utils.to_img(recon.cpu().data, self.args.img_size)
+            #     save_image(save_imgs, os.path.join(self.args.save_gen_images_dir, f'epoch_{epoch}.jpg'))
 
             if epoch % self.args.save_iteration == 0:
                 torch.save(self.model.state_dict(),

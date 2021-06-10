@@ -36,7 +36,7 @@ class VAEClsLoss(nn.Module):
         kl = kl_divergence(z, mu, std)
 
         # elbo
-        elbo = kl - recon_loss
+        elbo = abs(kl - recon_loss)
         elbo = elbo.mean()
 
         return elbo

@@ -45,7 +45,7 @@ class TransForms:
             # transforms.RandomRotation([-90, 90]),
             # transforms.RandomAffine((-90, 90)),
             transforms.Resize([self.img_size[0], self.img_size[1]], transforms.transforms.InterpolationMode.BICUBIC),
-            transforms.RandomCrop(size=32),
+            # transforms.RandomCrop(size=32),
             transforms.Grayscale(),
             transforms.ToTensor(),
             # transforms.RandomErasing(0.25),
@@ -58,7 +58,7 @@ class TransForms:
             # transforms.Lambda(self.pad_image),
             transforms.Resize([self.img_size[0], self.img_size[1]], transforms.transforms.InterpolationMode.BICUBIC),
             transforms.Grayscale(),
-            transforms.RandomCrop(size=32),
+            # transforms.RandomCrop(size=32),
             transforms.ToTensor(),
             transforms.Normalize((0.5, ), (0.5, ))
         ])

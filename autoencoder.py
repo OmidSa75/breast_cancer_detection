@@ -64,36 +64,36 @@ class VAE(nn.Module):
         super().__init__()
         self.name = "VAE"
         self.encoder = nn.Sequential(
-            ConvActBatNorm(1, 32, (3, 3), stride=(1, 1), padding=(1, 1)),
+            ConvActBatNorm(64, 64, (3, 3), stride=(1, 1), padding=(1, 1)),
             nn.MaxPool2d(2, stride=2),
-            ConvActBatNorm(32, 64, (3, 3), stride=(1, 1), padding=(1, 1)),
+            ConvActBatNorm(64, 64, (3, 3), stride=(1, 1), padding=(1, 1)),
             nn.MaxPool2d(2, stride=2),
             nn.Flatten(),
-            nn.Linear(8*8*64, 32),
+            nn.Linear(8*8*64, 64),
             nn.LeakyReLU(),
-            nn.BatchNorm1d(32),
+            nn.BatchNorm1d(64),
         )
 
         self.z_mean = nn.Sequential(
-            nn.Linear(32, 16),
+            nn.Linear(64, 64),
             nn.ReLU(),
-            nn.BatchNorm1d(16)
+            nn.BatchNorm1d(64)
         )
         self.z_log_var = nn.Sequential(
-            nn.Linear(32, 16),
+            nn.Linear(64, 64),
             nn.ReLU(),
-            nn.BatchNorm1d(16)
+            nn.BatchNorm1d(64)
         )
 
         self.decoder = nn.Sequential(
-            nn.Linear(16, 8*8*64),
+            nn.Linear(64, 8*8*64),
             nn.ReLU(),
             nn.BatchNorm1d(8*8*64),
             Reshape(-1, 64, 8, 8),
             nn.Upsample(scale_factor=2),
-            ConvTActBatNorm(64, 32, (3, 3), stride=(1, 1), padding=(1, 1)),
+            ConvTActBatNorm(64, 64, (3, 3), stride=(1, 1), padding=(1, 1)),
             nn.Upsample(scale_factor=2),
-            ConvTActBatNorm(32, 1, (3, 3), stride=(1, 1), padding=(1, 1)),
+            ConvTActBatNorm(64, 64, (3, 3), stride=(1, 1), padding=(1, 1)),
             nn.ReLU()
         )
 
