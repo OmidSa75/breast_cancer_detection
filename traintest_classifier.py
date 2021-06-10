@@ -4,7 +4,7 @@ import os
 from tqdm import tqdm
 
 
-class TrainTest:
+class TrainTestCls:
     def __init__(self, args, model: torch.nn.Module, train_dataset: Dataset, test_dataset: Dataset, utils):
         self.utils = utils
         self.args = args

@@ -113,3 +113,24 @@ class AttentionBlock(nn.Module):
         out = torch.mean(score, dim=(1, 2))
 
         return out
+
+
+class EncoderClassifier(nn.Module):
+    def __init__(self, autoencoder):
+        self.name = 'EncoderClassifier'
+        super(EncoderClassifier, self).__init__()
+        self.encoder = autoencoder.encoder
+        self.classifier = nn.Sequential(
+            nn.Linear(64, 32),
+            nn.LeakyReLU(),
+            nn.BatchNorm1d(32),
+            nn.Linear(32, 16),
+            nn.LeakyReLU(),
+            nn.BatchNorm1d(16),
+            nn.Linear(16, 2),
+            nn.Softmax(dim=1)
+        )
+
+    def forward(self, x):
+        x = self.encoder(x)
+        return self.classifier(x)

@@ -17,4 +17,6 @@ config.save_gen_images = 10  # after this epochs , save the generated images.
 
 config.patch_size = 32
 
+config.mode = 'classification'  # classification or autoencoder
+
 os.makedirs(config.save_gen_images_dir, exist_ok=True)

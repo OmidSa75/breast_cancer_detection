@@ -6,7 +6,7 @@ from tqdm import tqdm
 from loss import VAEClsLoss
 
 
-class TrainTest:
+class TrainTestVAE:
     def __init__(self, args, model: torch.nn.Module, train_dataset: Dataset, test_dataset: Dataset, utils):
         self.utils = utils
         self.args = args
