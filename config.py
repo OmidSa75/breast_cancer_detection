@@ -8,7 +8,7 @@ config.num_epochs = 200
 config.num_worker = 4
 config.save_iteration = 20
 config.ckpt_dir = os.path.join('checkpoints')
-config.img_size = (230, 350)
+config.img_size = (28, 28)
 config.test_iteration = 5
 
 '''AutoEncoder Setting'''
@@ -17,6 +17,6 @@ config.save_gen_images = 10  # after this epochs , save the generated images.
 
 config.patch_size = 32
 
-config.mode = 'classification'  # classification or autoencoder
+config.mode = 'mnist_vae'  # classification or autoencoder, mnist_cls, mnist_vae
 
 os.makedirs(config.save_gen_images_dir, exist_ok=True)

@@ -49,7 +49,7 @@ class MSCNN(nn.Module):
         self.conv4 = ConvActBatNorm(in_channels, features, kernel_size=(3, 3), padding=(1, 1))
         self.conv5 = ConvActBatNorm(in_channels, features, kernel_size=(5, 5), padding=(2, 2))
         self.pool = nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2))
-        self.conv = ConvActBatNorm(3* features, out_channel, kernel_size=(3, 3), padding=(1, 1))
+        self.conv = ConvActBatNorm(3 * features, out_channel, kernel_size=(3, 3), padding=(1, 1))
 
     def forward(self, x):
         conv1 = self.conv3(x)
@@ -69,7 +69,7 @@ class VAE(nn.Module):
             ConvActBatNorm(32, 16, (3, 3), stride=(1, 1), padding=(1, 1)),
             nn.MaxPool2d(2, stride=2),
             nn.Flatten(),
-            nn.Linear(8*8*16, 64),
+            nn.Linear(8 * 8 * 16, 64),
             nn.LeakyReLU(),
             nn.BatchNorm1d(64),
         )
@@ -86,9 +86,9 @@ class VAE(nn.Module):
         )
 
         self.decoder = nn.Sequential(
-            nn.Linear(64, 8*8*16),
+            nn.Linear(64, 8 * 8 * 16),
             nn.ReLU(),
-            nn.BatchNorm1d(8*8*16),
+            nn.BatchNorm1d(8 * 8 * 16),
             Reshape(-1, 16, 8, 8),
             nn.Upsample(scale_factor=2),
             ConvTActBatNorm(16, 32, (3, 3), stride=(1, 1), padding=(1, 1)),
@@ -113,8 +113,6 @@ class VAE(nn.Module):
             print(e)
             print(mu, std)
             assert 'error'
-
-
 
     def decode(self, x):
         x = self.decoder(x)

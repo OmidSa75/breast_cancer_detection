@@ -1,6 +1,7 @@
-from torchvision.datasets import ImageFolder
+from torchvision.datasets import ImageFolder, mnist
 import torch
 import os
+
 from dataset import BreastCancerDataset
 from autoencoder import VAE
 from classifier import EncoderClassifier
@@ -37,3 +38,12 @@ if __name__ == '__main__':
         ))
         train_test = TrainTestCls(config, model, train_dataset, test_dataset, utils)
         train_test.train()
+
+    elif config.mode == 'mnist_vae':
+        tfms = TransForms(config.img_size)
+        utils = Utils()
+        train_dataset = mnist.MNIST('mnist', transform=tfms.train_tfms)
+        test_dataset = mnist.MNIST('mnist', train=False, transform=tfms.test_tfms)
+
+        model = VAE()
+        train_test = TrainTestVAE(config, model, train_dataset, test_dataset, utils)
