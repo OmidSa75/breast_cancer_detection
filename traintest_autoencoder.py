@@ -20,22 +20,33 @@ class TrainTestVAE:
         os.makedirs(os.path.join(self.args.ckpt_dir, self.model.name), exist_ok=True)
 
         ''' optimizer '''
-
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.args.lr)
+        if self.args.optim == 'adam':
+            self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.args.lr)
+        elif self.args.optim == 'sgd':
+            self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.args.lr)
 
         '''dataset and dataloader'''
-        self.train_dataset = train_dataset
-        weights = self.utils.make_weights_for_balanced_classes(self.train_dataset.imgs, len(self.train_dataset.classes))
-        weights = torch.DoubleTensor(weights)
-        sampler = WeightedRandomSampler(weights, len(weights))
+        if self.args.mode not in  ['mnist_vae', 'mnist_cls']:
+            self.train_dataset = train_dataset
+            weights = self.utils.make_weights_for_balanced_classes(self.train_dataset.imgs, len(self.train_dataset.classes))
+            weights = torch.DoubleTensor(weights)
+            sampler = WeightedRandomSampler(weights, len(weights))
 
-        self.train_dataloader = DataLoader(self.train_dataset, self.batch_size,
-                                           num_workers=args.num_worker, sampler=sampler,
-                                           pin_memory=True)
+            self.train_dataloader = DataLoader(self.train_dataset, self.batch_size,
+                                               num_workers=self.args.num_worker, sampler=sampler,
+                                               pin_memory=True)
 
-        self.test_dataset = test_dataset
-        self.test_dataloader = DataLoader(self.test_dataset, self.batch_size, num_workers=args.num_worker,
-                                          pin_memory=True)
+            self.test_dataset = test_dataset
+            self.test_dataloader = DataLoader(self.test_dataset, self.batch_size, num_workers=self.args.num_worker,
+                                              pin_memory=True)
+        else:
+            self.train_dataset = train_dataset
+            self.train_dataloader = DataLoader(self.train_dataset, self.batch_size,
+                                               num_workers=self.args.num_worker,
+                                               pin_memory=True)
+            self.test_dataset = test_dataset
+            self.test_dataloader = DataLoader(self.test_dataset, self.batch_size, num_workers=self.args.num_worker,
+                                              pin_memory=True)
 
         '''loss function'''
         self.criterion = VAEClsLoss().to(self.device)
@@ -66,9 +77,9 @@ class TrainTestVAE:
 
             print("\n\033[0;32mEpoch: {} [Train Loss: {:.4f}]\033[0;0m".format(epoch, epoch_loss))
 
-            # if epoch % self.args.save_gen_images == 0:
-            #     save_imgs = self.utils.to_img(recon.cpu().data, self.args.img_size)
-            #     save_image(save_imgs, os.path.join(self.args.save_gen_images_dir, f'epoch_{epoch}.jpg'))
+            if epoch % self.args.save_gen_images == 0:
+                save_imgs = self.utils.to_img(recon.cpu().data, self.args.img_size)
+                save_image(save_imgs, os.path.join(self.args.save_gen_images_dir, f'epoch_{epoch}.jpg'))
 
             if epoch % self.args.save_iteration == 0:
                 torch.save(self.model.state_dict(),

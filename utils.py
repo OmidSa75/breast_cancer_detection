@@ -38,29 +38,29 @@ class TransForms:
     def return_train_transforms(self):
         tfms = transforms.Compose([
             # transforms.Lambda(self.pad_image),
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomVerticalFlip(),
-            transforms.RandomAdjustSharpness(2),
-            transforms.RandomAutocontrast(),
+            # transforms.RandomHorizontalFlip(),
+            # transforms.RandomVerticalFlip(),
+            # transforms.RandomAdjustSharpness(2),
+            # transforms.RandomAutocontrast(),
             # transforms.RandomRotation([-90, 90]),
             # transforms.RandomAffine((-90, 90)),
-            transforms.Resize([self.img_size[0], self.img_size[1]], transforms.transforms.InterpolationMode.BICUBIC),
+            # transforms.Resize([self.img_size[0], self.img_size[1]], transforms.transforms.InterpolationMode.BICUBIC),
             # transforms.RandomCrop(size=32),
-            transforms.Grayscale(),
+            # transforms.Grayscale(),
             transforms.ToTensor(),
             # transforms.RandomErasing(0.25),
-            transforms.Normalize((0.5, ), (0.5, ))
+            # transforms.Normalize((0.5, ), (0.5, ))
         ])
         return tfms
 
     def return_test_transforms(self):
         tfms = transforms.Compose([
             # transforms.Lambda(self.pad_image),
-            transforms.Resize([self.img_size[0], self.img_size[1]], transforms.transforms.InterpolationMode.BICUBIC),
-            transforms.Grayscale(),
+            # transforms.Resize([self.img_size[0], self.img_size[1]], transforms.transforms.InterpolationMode.BICUBIC),
+            # transforms.Grayscale(),
             # transforms.RandomCrop(size=32),
             transforms.ToTensor(),
-            transforms.Normalize((0.5, ), (0.5, ))
+            # transforms.Normalize((0.5, ), (0.5, ))
         ])
         return tfms
 

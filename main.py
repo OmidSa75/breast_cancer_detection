@@ -42,8 +42,9 @@ if __name__ == '__main__':
     elif config.mode == 'mnist_vae':
         tfms = TransForms(config.img_size)
         utils = Utils()
-        train_dataset = mnist.MNIST('mnist', transform=tfms.train_tfms)
-        test_dataset = mnist.MNIST('mnist', train=False, transform=tfms.test_tfms)
+        train_dataset = mnist.MNIST('mnist', transform=tfms.train_tfms, download=True)
+        test_dataset = mnist.MNIST('mnist', train=False, transform=tfms.test_tfms, download=True)
 
         model = VAE()
         train_test = TrainTestVAE(config, model, train_dataset, test_dataset, utils)
+        train_test.train()

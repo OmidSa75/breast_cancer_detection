@@ -2,18 +2,19 @@ from easydict import EasyDict
 import os
 
 config = EasyDict()
-config.lr = 0.01
+config.lr = 0.1
 config.batch_size = 16
 config.num_epochs = 200
 config.num_worker = 4
 config.save_iteration = 20
 config.ckpt_dir = os.path.join('checkpoints')
 config.img_size = (28, 28)
-config.test_iteration = 5
+config.test_iteration = 1
+config.optim = 'adam'  # sgd or adam
 
 '''AutoEncoder Setting'''
 config.save_gen_images_dir = 'generated_images'
-config.save_gen_images = 10  # after this epochs , save the generated images.
+config.save_gen_images = 1  # after this epochs , save the generated images.
 
 config.patch_size = 32
 
