@@ -63,6 +63,8 @@ class VAE(nn.Module):
     def __init__(self):
         super().__init__()
         self.name = "VAE"
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
         self.encoder = nn.Sequential(
             ConvActBatNorm(1, 32, (3, 3), stride=(1, 1), padding=(1, 1)),
             nn.MaxPool2d(2, stride=2),
@@ -105,14 +107,9 @@ class VAE(nn.Module):
 
     def reparametrize(self, mu, logvar: torch.Tensor):
         std = torch.exp(logvar / 2)
-        try:
-            q = torch.distributions.Normal(mu, std)
-            z = q.rsample()
-            return z, std
-        except Exception as e:
-            print(e)
-            print(mu, std)
-            assert 'error'
+        epsilon = torch.normal(mean=0.0, std=1.0, size=mu.shape, requires_grad=True, device=self.device)
+        z = mu + std * epsilon
+        return z
 
     def decode(self, x):
         x = self.decoder(x)
@@ -120,6 +117,6 @@ class VAE(nn.Module):
 
     def forward(self, x):
         mu, logvar = self.encode(x)
-        z, std = self.reparametrize(mu, logvar)
+        z = self.reparametrize(mu, logvar)
         recon = self.decode(z)
-        return recon, mu, z, std, self.logscale
+        return recon, mu, logvar

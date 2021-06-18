@@ -30,13 +30,11 @@ def kl_divergence(z, mu, std):
 class VAEClsLoss(nn.Module):
     def __init__(self):
         super(VAEClsLoss, self).__init__()
+        self.reconstruction_loss = nn.MSELoss()
 
-    def forward(self, recon_x, x, z, mu, std, logscale):
-        recon_loss = gaussian_likelihood(recon_x, logscale, x)
-        kl = kl_divergence(z, mu, std)
+    def forward(self, recon_x, x, mu, logvar):
+        recon_loss = self.reconstruction_loss(recon_x, x)
 
-        # elbo
-        elbo = abs(kl - recon_loss)
-        elbo = elbo.mean()
+        kl_loss = -0.5 * torch.sum(1 + logvar - torch.square(mu) - torch.exp(logvar), dim=1)
 
-        return elbo
+        return recon_loss + kl_loss.mean()

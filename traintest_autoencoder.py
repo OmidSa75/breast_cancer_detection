@@ -66,8 +66,8 @@ class TrainTestVAE:
                 data = data.to(self.device)
                 self.optimizer.zero_grad()
 
-                recon, mu, z, std, logscale = self.model(data)
-                loss = self.criterion(recon, data, mu, z, std, logscale)
+                recon, mu, logvar = self.model(data)
+                loss = self.criterion(recon, data, mu, logvar)
                 loss.backward()
                 self.optimizer.step()
 
@@ -97,8 +97,8 @@ class TrainTestVAE:
 
         for data, _ in tqdm(self.test_dataloader, desc="*Testing*"):
             data = data.to(self.device)
-            recon, mu, z, std, logscale = self.model(data)
-            loss = self.criterion(recon, data, mu, z, std, logscale)
+            recon, mu, logvar = self.model(data)
+            loss = self.criterion(recon, data, mu, logvar)
 
             test_loss += loss
 
