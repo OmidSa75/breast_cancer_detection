@@ -1,6 +1,7 @@
 from torchvision.datasets import ImageFolder, mnist
 import torch
 import os
+from glob import glob
 
 from dataset import BreastCancerDataset
 from autoencoder import VAE
@@ -13,6 +14,11 @@ from config import config
 if __name__ == '__main__':
     tfms = TransForms(config.img_size)
     utils = Utils()
+    os.makedirs('generated_images', exist_ok=True)
+    generated_images = glob(os.path.join('generated_images', '*.jpg'))
+    for img in generated_images:
+        os.remove(img)
+
     train_ds = ImageFolder(os.path.join('breast_cancer', 'train'))
     test_ds = ImageFolder(os.path.join('breast_cancer', 'test'))
     train_dataset = BreastCancerDataset(config, train_ds, transforms=tfms.train_tfms)

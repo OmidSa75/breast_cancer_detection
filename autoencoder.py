@@ -17,7 +17,7 @@ class ConvActBatNorm(nn.Module):
 
         self.seq = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding, stride=stride),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.BatchNorm2d(out_channels)
         )
 
@@ -32,7 +32,7 @@ class ConvTActBatNorm(nn.Module):
 
         self.seq = nn.Sequential(
             nn.ConvTranspose2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding, stride=stride),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.BatchNorm2d(out_channels)
         )
 
@@ -68,38 +68,35 @@ class VAE(nn.Module):
         self.encoder = nn.Sequential(
             ConvActBatNorm(1, 32, (3, 3), stride=(1, 1), padding=(1, 1)),
             nn.MaxPool2d(2, stride=2),
-            ConvActBatNorm(32, 16, (3, 3), stride=(1, 1), padding=(1, 1)),
+            ConvActBatNorm(32, 64, (3, 3), stride=(1, 1), padding=(1, 1)),
             nn.MaxPool2d(2, stride=2),
             nn.Flatten(),
-            nn.Linear(7*7 * 16, 64),
+            nn.Linear(7*7 * 64, 64),
             nn.LeakyReLU(),
             nn.BatchNorm1d(64),
         )
 
         self.z_mean = nn.Sequential(
             nn.Linear(64, 64),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.BatchNorm1d(64)
         )
         self.z_log_var = nn.Sequential(
             nn.Linear(64, 64),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.BatchNorm1d(64)
         )
 
         self.decoder = nn.Sequential(
             nn.Linear(64, 7 * 7 * 16),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.BatchNorm1d(7 * 7 * 16),
             Reshape(-1, 16, 7, 7),
             nn.Upsample(scale_factor=2),
             ConvTActBatNorm(16, 32, (3, 3), stride=(1, 1), padding=(1, 1)),
             nn.Upsample(scale_factor=2),
             ConvTActBatNorm(32, 1, (3, 3), stride=(1, 1), padding=(1, 1)),
-            nn.ReLU()
         )
-
-        self.logscale = nn.Parameter(torch.Tensor([0.0]))
 
     def encode(self, x):
         x = self.encoder(x)

@@ -2,10 +2,10 @@ from easydict import EasyDict
 import os
 
 config = EasyDict()
-config.lr = 0.1
+config.lr = 0.001
 config.batch_size = 16
 config.num_epochs = 200
-config.num_worker = 0
+config.num_worker = 4
 config.save_iteration = 20
 config.ckpt_dir = os.path.join('checkpoints')
 config.img_size = (28, 28)
