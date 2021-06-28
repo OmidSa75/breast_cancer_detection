@@ -37,4 +37,4 @@ class VAEClsLoss(nn.Module):
 
         kl_loss = -0.5 * torch.sum(1 + logvar - torch.square(mu) - torch.exp(logvar))
 
-        return recon_loss + kl_loss
+        return recon_loss

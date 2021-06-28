@@ -4,6 +4,7 @@ from torchvision.utils import save_image
 import os
 from tqdm import tqdm
 from loss import VAEClsLoss
+import visdom
 
 
 class TrainTestVAE:
@@ -21,14 +22,15 @@ class TrainTestVAE:
 
         ''' optimizer '''
         if self.args.optim == 'adam':
-            self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.args.lr)
+            self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.args.lr, weight_decay=0.001)
         elif self.args.optim == 'sgd':
             self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.args.lr)
 
         '''dataset and dataloader'''
-        if self.args.mode not in  ['mnist_vae', 'mnist_cls']:
+        if self.args.mode not in ['mnist_vae', 'mnist_cls']:
             self.train_dataset = train_dataset
-            weights = self.utils.make_weights_for_balanced_classes(self.train_dataset.imgs, len(self.train_dataset.classes))
+            weights = self.utils.make_weights_for_balanced_classes(self.train_dataset.imgs,
+                                                                   len(self.train_dataset.classes))
             weights = torch.DoubleTensor(weights)
             sampler = WeightedRandomSampler(weights, len(weights))
 
@@ -54,6 +56,9 @@ class TrainTestVAE:
         '''scheduler'''
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', factor=0.5, patience=3)
 
+        '''visdom for plotting'''
+        self.vis = visdom.Visdom(env='autoencoder')
+
     def train(self):
         num_epoch = self.args.num_epochs
 
@@ -74,19 +79,34 @@ class TrainTestVAE:
                 train_loss += loss
 
             epoch_loss = train_loss / len(self.train_dataloader)
+            self.vis.line(torch.tensor([epoch_loss]), torch.tensor([epoch]),
+                          win='loss', update='append', name='train loss',
+                          opts=dict(
+                              title='Loss',
+                              xlabel='Epochs',
+                              ylabel='loss'
+                          ))
 
             print("\n\033[0;32mEpoch: {} [Train Loss: {:.4f}]\033[0;0m".format(epoch, epoch_loss))
 
             if epoch % self.args.save_gen_images == 0:
                 save_imgs = self.utils.to_img(recon.cpu().data, self.args.img_size)
                 save_image(save_imgs, os.path.join(self.args.save_gen_images_dir, f'epoch_{epoch}.jpg'))
+                self.vis.images(save_imgs.numpy(), nrow=4, win='images', opts=dict(title='images'))
 
             if epoch % self.args.save_iteration == 0:
                 torch.save(self.model.state_dict(),
                            os.path.join(self.args.ckpt_dir, self.model.name, f'ckpt_{epoch}.pth'))
 
             if epoch % self.args.test_iteration == 0:
-                self.test()
+                test_loss = self.test()
+                self.vis.line(torch.tensor([test_loss]), torch.tensor([epoch]), win='loss',
+                              update='append', name='test loss',
+                              opts=dict(
+                                  title='Loss',
+                                  xlabel='Epochs',
+                                  ylabel='loss'
+                              ))
 
             self.scheduler.step(epoch_loss)
 
@@ -105,3 +125,4 @@ class TrainTestVAE:
         total_loss = test_loss / len(self.test_dataloader)
 
         print("\n\033[1;34m** Test: [Test Loss: {:.4f}]**\033[0;0m".format(total_loss))
+        return total_loss

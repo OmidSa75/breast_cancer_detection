@@ -67,34 +67,27 @@ class VAE(nn.Module):
 
         self.encoder = nn.Sequential(
             ConvActBatNorm(1, 32, (3, 3), stride=(1, 1), padding=(1, 1)),
-            nn.MaxPool2d(2, stride=2),
             ConvActBatNorm(32, 64, (3, 3), stride=(1, 1), padding=(1, 1)),
-            nn.MaxPool2d(2, stride=2),
+            ConvActBatNorm(64, 64, (3, 3), stride=(1, 1), padding=(1, 1)),
+            ConvActBatNorm(64, 64, (3, 3), stride=(1, 1), padding=(1, 1)),
             nn.Flatten(),
-            nn.Linear(7*7 * 64, 64),
-            nn.LeakyReLU(),
-            nn.BatchNorm1d(64),
         )
 
         self.z_mean = nn.Sequential(
-            nn.Linear(64, 64),
-            nn.LeakyReLU(),
-            nn.BatchNorm1d(64)
+            nn.Linear(28 * 28 * 64, 2),
         )
         self.z_log_var = nn.Sequential(
-            nn.Linear(64, 64),
-            nn.LeakyReLU(),
-            nn.BatchNorm1d(64)
+            nn.Linear(28 * 28 * 64, 2),
         )
 
         self.decoder = nn.Sequential(
-            nn.Linear(64, 7 * 7 * 16),
+            nn.Linear(2, 28 * 28 * 64),
             nn.LeakyReLU(),
-            nn.BatchNorm1d(7 * 7 * 16),
-            Reshape(-1, 16, 7, 7),
-            nn.Upsample(scale_factor=2),
-            ConvTActBatNorm(16, 32, (3, 3), stride=(1, 1), padding=(1, 1)),
-            nn.Upsample(scale_factor=2),
+            nn.BatchNorm1d(28 * 28 * 64),
+            Reshape(-1, 64, 28, 28),
+            ConvTActBatNorm(64, 64, (3, 3), stride=(1, 1), padding=(1, 1)),
+            ConvTActBatNorm(64, 64, (3, 3), stride=(1, 1), padding=(1, 1)),
+            ConvTActBatNorm(64, 32, (3, 3), stride=(1, 1), padding=(1, 1)),
             ConvTActBatNorm(32, 1, (3, 3), stride=(1, 1), padding=(1, 1)),
         )
 
