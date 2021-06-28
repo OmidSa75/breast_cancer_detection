@@ -2,6 +2,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
 import os
 from tqdm import tqdm
+import visdom
 
 
 class TrainTestCls:
@@ -22,24 +23,37 @@ class TrainTestCls:
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.args.lr)
 
         '''dataset and dataloader'''
-        self.train_dataset = train_dataset
-        weights = self.utils.make_weights_for_balanced_classes(self.train_dataset.imgs, len(self.train_dataset.classes))
-        weights = torch.DoubleTensor(weights)
-        sampler = WeightedRandomSampler(weights, len(weights))
+        if self.args.mode not in ['mnist_vae', 'mnist_cls']:
+            self.train_dataset = train_dataset
+            weights = self.utils.make_weights_for_balanced_classes(self.train_dataset.imgs,
+                                                                   len(self.train_dataset.classes))
+            weights = torch.DoubleTensor(weights)
+            sampler = WeightedRandomSampler(weights, len(weights))
 
-        self.train_dataloader = DataLoader(self.train_dataset, self.batch_size,
-                                           num_workers=args.num_worker, sampler=sampler,
-                                           pin_memory=True)
+            self.train_dataloader = DataLoader(self.train_dataset, self.batch_size,
+                                               num_workers=self.args.num_worker, sampler=sampler,
+                                               pin_memory=True)
 
-        self.test_dataset = test_dataset
-        self.test_dataloader = DataLoader(self.test_dataset, self.batch_size, num_workers=args.num_worker,
-                                          pin_memory=True)
+            self.test_dataset = test_dataset
+            self.test_dataloader = DataLoader(self.test_dataset, self.batch_size, num_workers=self.args.num_worker,
+                                              pin_memory=True)
+        else:
+            self.train_dataset = train_dataset
+            self.train_dataloader = DataLoader(self.train_dataset, self.batch_size,
+                                               num_workers=self.args.num_worker,
+                                               pin_memory=True)
+            self.test_dataset = test_dataset
+            self.test_dataloader = DataLoader(self.test_dataset, self.batch_size, num_workers=self.args.num_worker,
+                                              pin_memory=True)
 
         '''loss function'''
-        self.criterion = torch.nn.CrossEntropyLoss().to(self.device)
+        self.criterion = torch.nn.CrossEntropyLoss()
 
         '''scheduler'''
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='max', factor=0.5, patience=3)
+
+        '''visdom for plotting'''
+        self.vis = visdom.Visdom(env='classifier')
 
     def train(self):
         num_epoch = self.args.num_epochs
@@ -65,6 +79,23 @@ class TrainTestCls:
             epoch_loss = train_loss / len(self.train_dataloader)
             epoch_acc = train_acc / len(self.train_dataloader)
 
+            self.vis.line(torch.tensor([epoch_loss]), torch.tensor([epoch]),
+                          win='loss', update='append', name='train loss',
+                          opts=dict(
+                              legend=['train loss', 'test loss'],
+                              title='Loss',
+                              xlabel='Epochs',
+                              ylabel='loss'
+                          ))
+            self.vis.line(torch.tensor([epoch_acc]), torch.tensor([epoch]),
+                          win='acc', update='append', name='train acc',
+                          opts=dict(
+                              legend=['train acc', 'train acc'],
+                              title='Accuracy',
+                              xlabel='Epochs',
+                              ylabel='Acc'
+                          ))
+
             print("\033[0;32mEpoch: {} [Train Loss: {:.4f}] [Train Acc: {:.2f}]\033[0;0m".format(epoch, epoch_loss,
                                                                                                  epoch_acc))
 
@@ -73,7 +104,24 @@ class TrainTestCls:
                            os.path.join(self.args.ckpt_dir, self.model.name, f'ckpt_{epoch}.pth'))
 
             if epoch % self.args.test_iteration == 0:
-                self.test()
+                test_loss, test_acc = self.test()
+
+                self.vis.line(torch.tensor([test_loss]), torch.tensor([epoch]),
+                              win='loss', update='append', name='test loss',
+                              opts=dict(
+                                  legend=['train loss', 'test loss'],
+                                  title='Loss',
+                                  xlabel='Epochs',
+                                  ylabel='loss'
+                              ))
+                self.vis.line(torch.tensor([test_acc]), torch.tensor([epoch]),
+                              win='acc', update='append', name='test acc',
+                              opts=dict(
+                                  legend=['train acc', 'test acc'],
+                                  title='Accuracy',
+                                  xlabel='Epochs',
+                                  ylabel='Acc'
+                              ))
 
             self.scheduler.step(epoch_acc)
 
@@ -95,3 +143,4 @@ class TrainTestCls:
         total_acc = test_acc / len(self.test_dataloader)
 
         print("\033[1;34m** Test: [Test Loss: {:.4f}] [Test Acc: {:.2f}] **\033[0;0m".format(total_loss, total_acc))
+        return total_loss, total_acc
