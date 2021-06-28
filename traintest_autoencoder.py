@@ -82,6 +82,7 @@ class TrainTestVAE:
             self.vis.line(torch.tensor([epoch_loss]), torch.tensor([epoch]),
                           win='loss', update='append', name='train loss',
                           opts=dict(
+                              legend=['train loss', 'test loss'],
                               title='Loss',
                               xlabel='Epochs',
                               ylabel='loss'
@@ -103,6 +104,7 @@ class TrainTestVAE:
                 self.vis.line(torch.tensor([test_loss]), torch.tensor([epoch]), win='loss',
                               update='append', name='test loss',
                               opts=dict(
+                                  legend=['train loss', 'test loss'],
                                   title='Loss',
                                   xlabel='Epochs',
                                   ylabel='loss'
