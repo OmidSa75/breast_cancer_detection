@@ -33,8 +33,8 @@ class VAEClsLoss(nn.Module):
         self.reconstruction_loss = nn.MSELoss()
 
     def forward(self, recon_x, x, mu, logvar):
-        recon_loss = self.reconstruction_loss(recon_x, x)
+        recon_loss = self.reconstruction_loss(recon_x, x) * 1500
 
         kl_loss = -0.5 * torch.sum(1 + logvar - torch.square(mu) - torch.exp(logvar))
 
-        return recon_loss
+        return recon_loss + kl_loss
