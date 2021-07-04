@@ -65,40 +65,30 @@ class VAE(nn.Module):
         self.name = "VAE"
 
         self.encoder = nn.Sequential(
-            ConvActBatNorm(1, 32, (3, 3), stride=(1, 1), padding=(1, 1)),
-            ConvActBatNorm(32, 64, (3, 3), stride=(1, 1), padding=(1, 1)),
-            ConvActBatNorm(64, 64, (3, 3), stride=(1, 1), padding=(1, 1)),
-            ConvActBatNorm(64, 64, (3, 3), stride=(1, 1), padding=(1, 1)),
             nn.Flatten(),
-        )
+            nn.Linear(784, 196), nn.ReLU(), nn.BatchNorm1d(196, momentum=0.7),
+            nn.Linear(196, 49), nn.ReLU(), nn.BatchNorm1d(49, momentum=0.7),
+            nn.Linear(49, 28), nn.LeakyReLU())
 
         self.z_mean = nn.Sequential(
-            nn.Linear(28 * 28 * 64, 128),
+            nn.Linear(28, 28)
         )
         self.z_log_var = nn.Sequential(
-            nn.Linear(28 * 28 * 64, 128),
+            nn.Linear(28, 28)
         )
 
-        self.decoder = nn.Sequential(
-            nn.Linear(128, 28 * 28 * 64),
-            nn.LeakyReLU(),
-            nn.BatchNorm1d(28 * 28 * 64),
-            Reshape(-1, 64, 28, 28),
-            ConvTActBatNorm(64, 64, (3, 3), stride=(1, 1), padding=(1, 1)),
-            ConvTActBatNorm(64, 64, (3, 3), stride=(1, 1), padding=(1, 1)),
-            ConvTActBatNorm(64, 32, (3, 3), stride=(1, 1), padding=(1, 1)),
-            ConvTActBatNorm(32, 1, (3, 3), stride=(1, 1), padding=(1, 1)),
-        )
+        self.decoder = nn.Sequential(nn.Linear(28, 49), nn.ReLU(),
+                                     nn.Linear(49, 196), nn.ReLU(),
+                                     nn.Linear(196, 784), nn.Tanh())
 
     def encode(self, x):
         x = self.encoder(x)
         return self.z_mean(x), self.z_log_var(x)
 
     def reparametrize(self, mu, logvar: torch.Tensor):
-        std = torch.exp(logvar / 2)
-        epsilon = torch.normal(mean=0.0, std=1.0, size=mu.shape, requires_grad=True, device=mu.device)
-        z = mu + std * epsilon
-        return z
+        sigma = torch.exp(0.5 * logvar)
+        z = torch.randn_like(sigma)
+        return mu + sigma * z
 
     def decode(self, x):
         x = self.decoder(x)
@@ -108,4 +98,5 @@ class VAE(nn.Module):
         mu, logvar = self.encode(x)
         z = self.reparametrize(mu, logvar)
         recon = self.decode(z)
+        recon = recon.view(-1, 1, 28, 28)
         return recon, mu, logvar
