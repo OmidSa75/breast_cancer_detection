@@ -44,7 +44,7 @@ class TransForms:
             # transforms.RandomAutocontrast(),
             # transforms.RandomRotation([-90, 90]),
             # transforms.RandomAffine((-90, 90)),
-            # transforms.Resize([self.img_size[0], self.img_size[1]], transforms.transforms.InterpolationMode.BICUBIC),
+            transforms.Resize([self.img_size[0], self.img_size[1]], transforms.transforms.InterpolationMode.BICUBIC),
             # transforms.RandomCrop(size=32),
             # transforms.Grayscale(),
             transforms.ToTensor(),
@@ -56,7 +56,7 @@ class TransForms:
     def return_test_transforms(self):
         tfms = transforms.Compose([
             # transforms.Lambda(self.pad_image),
-            # transforms.Resize([self.img_size[0], self.img_size[1]], transforms.transforms.InterpolationMode.BICUBIC),
+            transforms.Resize([self.img_size[0], self.img_size[1]], transforms.transforms.InterpolationMode.BICUBIC),
             # transforms.Grayscale(),
             # transforms.RandomCrop(size=32),
             transforms.ToTensor(),
