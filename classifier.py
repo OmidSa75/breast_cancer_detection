@@ -121,7 +121,7 @@ class EncoderClassifier(nn.Module):
         super(EncoderClassifier, self).__init__()
         self.encoder = autoencoder.encoder
         self.classifier = nn.Sequential(
-            nn.Linear(28*28*64, 32),
+            nn.Linear(16*16*64, 32),
             nn.LeakyReLU(),
             nn.BatchNorm1d(32),
             nn.Linear(32, 16),

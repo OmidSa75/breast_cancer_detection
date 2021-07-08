@@ -76,14 +76,14 @@ class VAE(nn.Module):
         )
 
         self.z_mean = nn.Sequential(
-            nn.Linear(16 * 16 * 64, 128),
+            nn.Linear(16 * 16 * 64, 512),
         )
         self.z_log_var = nn.Sequential(
-            nn.Linear(16 * 16 * 64, 128),
+            nn.Linear(16 * 16 * 64, 512),
         )
 
         self.decoder = nn.Sequential(
-            nn.Linear(128, 16 * 16 * 64),
+            nn.Linear(512, 16 * 16 * 64),
             nn.LeakyReLU(),
             nn.BatchNorm1d(16 * 16 * 64),
             Reshape(-1, 64, 16, 16),
