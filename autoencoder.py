@@ -94,7 +94,7 @@ class Encoder(nn.Module):
         std = torch.exp(log_var / 2)
         epsilon = torch.normal(mean=0.0, std=1.0, size=mu.shape, requires_grad=True, device=mu.device)
         z = mu + std * epsilon
-        return z
+        return z, mu, log_var
 
 
 class Decoder(nn.Module):
@@ -125,7 +125,7 @@ class VAE(nn.Module):
         self.decoder = Decoder()
 
     def forward(self, x):
-        x = self.encoder(x)
-        x = self.decoder(x)
+        z, mu, log_var = self.encoder(x)
+        x = self.decoder(z)
 
-        return x
+        return x, mu, log_var
