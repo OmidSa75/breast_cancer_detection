@@ -79,15 +79,15 @@ class MSTCNN(nn.Module):
 class Encoder(nn.Module):
     def __init__(self):
         super(Encoder, self).__init__()
-        self.mscnn_1 = MSCNN(3, 32, 32)
-        self.mscnn_2 = MSCNN(32, 64, 64)
+        self.mscnn_1 = MSCNN(3, 64, 64)
+        # self.mscnn_2 = MSCNN(32, 64, 64)
         self.flatten = nn.Flatten()
         self.z_mean = nn.Linear(8 * 8 * 64, 128)
         self.z_log_var = nn.Linear(8 * 8 * 64, 128)
 
     def forward(self, x):
         x = self.mscnn_1(x)
-        x = self.mscnn_2(x)
+        # x = self.mscnn_2(x)
         x = self.flatten(x)
         log_var = self.z_log_var(x)
         mu = self.z_mean(x)
@@ -100,8 +100,8 @@ class Encoder(nn.Module):
 class Decoder(nn.Module):
     def __init__(self):
         super(Decoder, self).__init__()
-        self.mstcnn1 = MSTCNN(64, 32, 64)
-        self.mstcnn2 = MSTCNN(32, 3, 32)
+        self.mstcnn1 = MSTCNN(64, 3, 64)
+        # self.mstcnn2 = MSTCNN(32, 3, 32)
         self.fc = nn.Sequential(
             nn.Linear(128, 8 * 8 * 64),
             nn.LeakyReLU(0.1),
@@ -112,7 +112,7 @@ class Decoder(nn.Module):
     def forward(self, x):
         x = self.fc(x)
         x = self.mstcnn1(x)
-        x = self.mstcnn2(x)
+        # x = self.mstcnn2(x)
         return x
 
 

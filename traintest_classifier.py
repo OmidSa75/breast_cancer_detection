@@ -53,10 +53,9 @@ class TrainTestCls:
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='max', factor=0.5, patience=3)
 
         '''visdom for plotting'''
-        # try:
-        #     self.vis = visdom.Visdom(env='classifier')
-        # except:
-        #     pass
+        if self.args.visdom:
+            self.vis = visdom.Visdom(env='classifier')
+
 
     def train(self):
         num_epoch = self.args.num_epochs
@@ -81,25 +80,23 @@ class TrainTestCls:
 
             epoch_loss = train_loss / len(self.train_dataloader)
             epoch_acc = train_acc / len(self.train_dataloader)
-            # try:
-            #     self.vis.line(torch.tensor([epoch_loss]), torch.tensor([epoch]),
-            #                   win='loss', update='append', name='train loss',
-            #                   opts=dict(
-            #                       legend=['train loss', 'test loss'],
-            #                       title='Loss',
-            #                       xlabel='Epochs',
-            #                       ylabel='loss'
-            #                   ))
-            #     self.vis.line(torch.tensor([epoch_acc]), torch.tensor([epoch]),
-            #                   win='acc', update='append', name='train acc',
-            #                   opts=dict(
-            #                       legend=['train acc', 'train acc'],
-            #                       title='Accuracy',
-            #                       xlabel='Epochs',
-            #                       ylabel='Acc'
-            #                   ))
-            # except:
-            #     pass
+            if self.args.visdom:
+                self.vis.line(torch.tensor([epoch_loss]), torch.tensor([epoch]),
+                              win='loss', update='append', name='train loss',
+                              opts=dict(
+                                  legend=['train loss', 'test loss'],
+                                  title='Loss',
+                                  xlabel='Epochs',
+                                  ylabel='loss'
+                              ))
+                self.vis.line(torch.tensor([epoch_acc]), torch.tensor([epoch]),
+                              win='acc', update='append', name='train acc',
+                              opts=dict(
+                                  legend=['train acc', 'train acc'],
+                                  title='Accuracy',
+                                  xlabel='Epochs',
+                                  ylabel='Acc'
+                              ))
 
             print("\033[0;32mEpoch: {} [Train Loss: {:.4f}] [Train Acc: {:.2f}]\033[0;0m".format(epoch, epoch_loss,
                                                                                                  epoch_acc))
@@ -110,25 +107,23 @@ class TrainTestCls:
 
             if epoch % self.args.test_iteration == 0:
                 test_loss, test_acc = self.test()
-                # try:
-                #     self.vis.line(torch.tensor([test_loss]), torch.tensor([epoch]),
-                #                   win='loss', update='append', name='test loss',
-                #                   opts=dict(
-                #                       legend=['train loss', 'test loss'],
-                #                       title='Loss',
-                #                       xlabel='Epochs',
-                #                       ylabel='loss'
-                #                   ))
-                #     self.vis.line(torch.tensor([test_acc]), torch.tensor([epoch]),
-                #                   win='acc', update='append', name='test acc',
-                #                   opts=dict(
-                #                       legend=['train acc', 'test acc'],
-                #                       title='Accuracy',
-                #                       xlabel='Epochs',
-                #                       ylabel='Acc'
-                #                   ))
-                # except:
-                #     pass
+                if self.args.visdom:
+                    self.vis.line(torch.tensor([test_loss]), torch.tensor([epoch]),
+                                  win='loss', update='append', name='test loss',
+                                  opts=dict(
+                                      legend=['train loss', 'test loss'],
+                                      title='Loss',
+                                      xlabel='Epochs',
+                                      ylabel='loss'
+                                  ))
+                    self.vis.line(torch.tensor([test_acc]), torch.tensor([epoch]),
+                                  win='acc', update='append', name='test acc',
+                                  opts=dict(
+                                      legend=['train acc', 'test acc'],
+                                      title='Accuracy',
+                                      xlabel='Epochs',
+                                      ylabel='Acc'
+                                  ))
 
             self.scheduler.step(epoch_acc)
 

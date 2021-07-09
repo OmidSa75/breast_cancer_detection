@@ -40,7 +40,7 @@ if __name__ == '__main__':
         # train_dataset = BreastCancerDataset(config, train_ds, transforms=tfms.train_tfms)
         # test_dataset = BreastCancerDataset(config, test_ds, transforms=tfms.test_tfms)
         autoencoder = VAE()
-        autoencoder.load_state_dict(torch.load('checkpoints/ComplexVAE/ckpt_200.pth'))
+        autoencoder.load_state_dict(torch.load('checkpoints/ComplexVAE/ckpt_100.pth'))
         model = EncoderClassifier(autoencoder)
         num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
         print("Number of train images: {}\nNumber of test images: {}\nNumber of model trainable parameters: {}".format(
