@@ -79,21 +79,26 @@ class TrainTestVAE:
                 train_loss += loss
 
             epoch_loss = train_loss / len(self.train_dataloader)
-            self.vis.line(torch.tensor([epoch_loss]), torch.tensor([epoch]),
-                          win='loss', update='append', name='train loss',
-                          opts=dict(
-                              legend=['train loss', 'test loss'],
-                              title='Loss',
-                              xlabel='Epochs',
-                              ylabel='loss'
-                          ))
-
+            try:
+                self.vis.line(torch.tensor([epoch_loss]), torch.tensor([epoch]),
+                              win='loss', update='append', name='train loss',
+                              opts=dict(
+                                  legend=['train loss', 'test loss'],
+                                  title='Loss',
+                                  xlabel='Epochs',
+                                  ylabel='loss'
+                              ))
+            except:
+                pass
             print("\n\033[0;32mEpoch: {} [Train Loss: {:.4f}]\033[0;0m".format(epoch, epoch_loss))
 
             if epoch % self.args.save_gen_images == 0:
                 save_imgs = self.utils.to_img(recon.cpu().data, self.args.img_size)
                 save_image(save_imgs, os.path.join(self.args.save_gen_images_dir, f'epoch_{epoch}.jpg'))
-                self.vis.images(save_imgs.numpy(), nrow=4, win='images', opts=dict(title='images'))
+                try:
+                    self.vis.images(save_imgs.numpy(), nrow=4, win='images', opts=dict(title='images'))
+                except:
+                    pass
 
             if epoch % self.args.save_iteration == 0:
                 torch.save(self.model.state_dict(),
@@ -101,14 +106,17 @@ class TrainTestVAE:
 
             if epoch % self.args.test_iteration == 0:
                 test_loss = self.test()
-                self.vis.line(torch.tensor([test_loss]), torch.tensor([epoch]), win='loss',
-                              update='append', name='test loss',
-                              opts=dict(
-                                  legend=['train loss', 'test loss'],
-                                  title='Loss',
-                                  xlabel='Epochs',
-                                  ylabel='loss'
-                              ))
+                try:
+                    self.vis.line(torch.tensor([test_loss]), torch.tensor([epoch]), win='loss',
+                                  update='append', name='test loss',
+                                  opts=dict(
+                                      legend=['train loss', 'test loss'],
+                                      title='Loss',
+                                      xlabel='Epochs',
+                                      ylabel='loss'
+                                  ))
+                except:
+                    pass
 
             self.scheduler.step(epoch_loss)
 
