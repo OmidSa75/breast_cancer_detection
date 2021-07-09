@@ -57,7 +57,10 @@ class TrainTestVAE:
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', factor=0.5, patience=3)
 
         '''visdom for plotting'''
-        self.vis = visdom.Visdom(env='autoencoder')
+        try:
+            self.vis = visdom.Visdom(env='autoencoder')
+        except:
+            pass
 
     def train(self):
         num_epoch = self.args.num_epochs
