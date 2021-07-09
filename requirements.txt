@@ -1,0 +1,5 @@
+torchvision==0.9.1
+pillow==8.2.0
+easydict==1.9
+visdom==0.1.8.9
+tqdm==4.60.0
