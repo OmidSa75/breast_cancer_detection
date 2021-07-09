@@ -129,10 +129,10 @@ class EncoderClassifier(nn.Module):
             nn.Linear(32, 16),
             nn.LeakyReLU(),
             nn.BatchNorm1d(16),
-            nn.Linear(16, 10),
+            nn.Linear(16, 2),
             nn.Softmax(dim=1)
         )
 
     def forward(self, x):
-        x = self.encoder(x)
-        return self.classifier(x)
+        z, _, _ = self.encoder(x)
+        return self.classifier(z)
