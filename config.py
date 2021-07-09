@@ -18,6 +18,6 @@ config.save_gen_images = 1  # after this epochs , save the generated images.
 
 config.patch_size = 32
 
-config.mode = 'classification'  # classification or autoencoder, mnist_cls, mnist_vae
+config.mode = 'autoencoder'  # classification or autoencoder, mnist_cls, mnist_vae
 
 os.makedirs(config.save_gen_images_dir, exist_ok=True)
